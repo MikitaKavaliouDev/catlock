@@ -58,7 +58,7 @@ impl Default for Shortcuts {
         Self {
             lock: "ctrl+alt+shift+k".into(),
             unlock: "ctrl+alt+shift+k".into(),
-            hold_to_unlock_ms: 1200,
+            hold_to_unlock_ms: 0, // instant unlock by default; 4-key chord is cat-proof
             allow_unmodified: false,
         }
     }

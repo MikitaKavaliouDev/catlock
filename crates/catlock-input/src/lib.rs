@@ -18,14 +18,36 @@ pub struct Keyboard {
     pub device: Device,
 }
 
-/// Heuristic: a real keyboard exposes a-z, space and enter.
+/// Heuristic: a real keyboard exposes a-z, space and enter, and is NOT also a
+/// pointer (mouse/touchpad). The MX Master 2S, for example, exposes keyboard
+/// keys but must never be grabbed — grabbing it kills the mouse.
 pub fn is_keyboard(dev: &Device) -> bool {
-    dev.supported_keys().map_or(false, |keys| {
-        keys.contains(KeyCode::KEY_A)
-            && keys.contains(KeyCode::KEY_Z)
-            && keys.contains(KeyCode::KEY_SPACE)
-            && keys.contains(KeyCode::KEY_ENTER)
-    })
+    let keys = match dev.supported_keys() {
+        Some(k) => k,
+        None => return false,
+    };
+    if !keys.contains(KeyCode::KEY_A)
+        || !keys.contains(KeyCode::KEY_Z)
+        || !keys.contains(KeyCode::KEY_SPACE)
+        || !keys.contains(KeyCode::KEY_ENTER)
+    {
+        return false;
+    }
+    // Exclude pointer devices: they expose relative axes or mouse buttons.
+    if let Some(rel) = dev.supported_relative_axes() {
+        if rel.contains(evdev::RelativeAxisCode::REL_X)
+            || rel.contains(evdev::RelativeAxisCode::REL_Y)
+        {
+            return false;
+        }
+    }
+    if let Some(btns) = dev.supported_keys() {
+        // BTN_LEFT (0x110) indicates a mouse/touchpad.
+        if btns.contains(KeyCode::BTN_LEFT) {
+            return false;
+        }
+    }
+    true
 }
 
 /// Open and return every keyboard-like device currently present.

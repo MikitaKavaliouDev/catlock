@@ -16,5 +16,6 @@ evdev = { workspace = true }
 nix = { workspace = true }
 tracing = { workspace = true }
 tracing-subscriber = { workspace = true }
+tracing-appender = "0.2"
 anyhow = { workspace = true }
 ctrlc = "3"
