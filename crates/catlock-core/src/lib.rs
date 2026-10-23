@@ -5,8 +5,10 @@
 
 pub mod chord;
 pub mod config;
+pub mod matcher;
 pub mod state;
 
 pub use chord::Chord;
 pub use config::Config;
+pub use matcher::{Action, Matcher};
 pub use state::State;
