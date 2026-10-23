@@ -12,6 +12,9 @@ path = "src/main.rs"
 [dependencies]
 catlock-core = { path = "../catlock-core" }
 catlock-input = { path = "../catlock-input" }
+evdev = { workspace = true }
+nix = { workspace = true }
 tracing = { workspace = true }
 tracing-subscriber = { workspace = true }
 anyhow = { workspace = true }
+ctrlc = "3"
