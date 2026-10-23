@@ -1,0 +1,17 @@
+[package]
+name = "catlockd"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+
+[[bin]]
+name = "catlockd"
+path = "src/main.rs"
+
+[dependencies]
+catlock-core = { path = "../catlock-core" }
+catlock-input = { path = "../catlock-input" }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+anyhow = { workspace = true }
