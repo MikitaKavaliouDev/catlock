@@ -27,6 +27,7 @@ pub struct Daemon {
     lock_blocked_until: Option<Instant>,
     initial_vt: Option<String>,
     debug_keys: bool,
+    dry_run: bool,
     stop: std::sync::Arc<std::sync::atomic::AtomicBool>,
 }
 
@@ -34,6 +35,7 @@ impl Daemon {
     pub fn new(
         config: Config,
         debug_keys: bool,
+        dry_run: bool,
         stop: std::sync::Arc<std::sync::atomic::AtomicBool>,
     ) -> Self {
         let keyboards = catlock_input::discover();
@@ -59,6 +61,7 @@ impl Daemon {
             lock_blocked_until: None,
             initial_vt,
             debug_keys,
+            dry_run,
             stop,
         }
     }
@@ -75,6 +78,7 @@ impl Daemon {
             unlock = %self.config.shortcuts.unlock,
             hold_ms = self.config.shortcuts.hold_to_unlock_ms,
             deadman_s = self.config.behaviour.auto_unlock_after_s,
+            dry_run = self.dry_run,
             "daemon running"
         );
 
@@ -241,10 +245,14 @@ impl Daemon {
     }
 
     fn lock(&mut self) {
-        info!("LOCK");
-        for kb in &mut self.keyboards {
-            if let Err(e) = kb.device.grab() {
-                warn!(path = %kb.path.display(), error = %e, "grab failed");
+        if self.dry_run {
+            info!("WOULD LOCK (dry-run: keyboard stays live)");
+        } else {
+            info!("LOCK");
+            for kb in &mut self.keyboards {
+                if let Err(e) = kb.device.grab() {
+                    warn!(path = %kb.path.display(), error = %e, "grab failed");
+                }
             }
         }
         self.locked = true;
@@ -260,9 +268,13 @@ impl Daemon {
     }
 
     fn unlock(&mut self, reason: &str) {
-        info!(reason, "UNLOCK");
-        for kb in &mut self.keyboards {
-            let _ = kb.device.ungrab();
+        if self.dry_run {
+            info!(reason, "WOULD UNLOCK (dry-run)");
+        } else {
+            info!(reason, "UNLOCK");
+            for kb in &mut self.keyboards {
+                let _ = kb.device.ungrab();
+            }
         }
         self.locked = false;
         self.matcher.set_locked(false);
@@ -276,8 +288,13 @@ impl Daemon {
     }
 }
 
-pub fn run_daemon(config: Config, debug_keys: bool, stop: std::sync::Arc<std::sync::atomic::AtomicBool>) {
-    let mut d = Daemon::new(config, debug_keys, stop);
+pub fn run_daemon(
+    config: Config,
+    debug_keys: bool,
+    dry_run: bool,
+    stop: std::sync::Arc<std::sync::atomic::AtomicBool>,
+) {
+    let mut d = Daemon::new(config, debug_keys, dry_run, stop);
     d.run();
 }
 

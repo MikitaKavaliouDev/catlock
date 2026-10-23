@@ -1,4 +1,4 @@
-.PHONY: build test test-core spike run-spike install logs clean
+.PHONY: build test test-core spike run-spike install logs log-file clean
 
 build:
 	cargo build --workspace
@@ -23,6 +23,9 @@ install:
 
 logs:
 	journalctl -fu catlockd
+
+log-file:
+	tail -f /var/log/catlockd.log
 
 clean:
 	cargo clean
